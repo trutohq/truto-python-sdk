@@ -12,11 +12,11 @@ jobs:
     steps:
       # Step 1: Check out the repository
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Step 2: Set up Python environment
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'  # Set the desired Python version
 
@@ -26,12 +26,7 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      # Step 4: Install dependencies
-      - name: Install dependencies
-        run: |
-          poetry install --no-dev
-
-      # Step 5: Publish to PyPI
+      # Step 4: Publish to PyPI
       - name: Publish to PyPI
         env:
           POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}  # Use the PyPI token secret
