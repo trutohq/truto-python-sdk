@@ -3,7 +3,15 @@ name: Publish Python Package
 on:
   push:
     branches:
-      - main  # Triggers on push to the main branch
+      - main  # Publishes whenever the version in pyproject.toml is new
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pypi-publish
+  cancel-in-progress: false
 
 jobs:
   publish:
@@ -22,13 +30,12 @@ jobs:
 
       # Step 3: Install Poetry
       - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+        run: pipx install poetry
 
-      # Step 4: Publish to PyPI
+      # Step 4: Publish to PyPI. Merges that don't bump the version are a
+      # no-op instead of failing on "File already exists".
       - name: Publish to PyPI
         env:
           POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}  # Use the PyPI token secret
         run: |
-          poetry publish --build
+          poetry publish --build --skip-existing
