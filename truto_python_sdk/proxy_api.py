@@ -26,4 +26,4 @@ class ProxyApi:
 
     def custom_method(self, resource: str, method: str, data: dict, query_params: dict):
         """Call a custom method on a proxy api resource."""
-        return self.api_client._post(method, f"proxy/{resource}/{method}", data=data, params=query_params)
+        return self.api_client._post(f"proxy/{resource}/{method}", data=data, params=query_params)

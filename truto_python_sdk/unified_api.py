@@ -26,4 +26,4 @@ class UnifiedApi:
 
     def custom_method(self, unified_model_name: str, unified_model_resource: str, method: str, data: dict, query_params: dict):
         """Call a custom method on a unified api resource."""
-        return self.api_client._post(method, f"unified/{unified_model_name}/{unified_model_resource}/{method}", data=data, params=query_params)
+        return self.api_client._post(f"unified/{unified_model_name}/{unified_model_resource}/{method}", data=data, params=query_params)
