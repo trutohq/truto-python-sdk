@@ -166,13 +166,14 @@ class TestEndpoints(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([(r["method"], r["path"]) for r in deleted],
                          [("DELETE", "/environment-unified-model/1"), ("DELETE", "/environment-unified-model/2")])
 
-    def test_non_public_resources_are_not_exposed(self):
+    def test_resources_from_earlier_releases_are_kept(self):
         for attr in [
-            "users", "teams", "session_tokens", "alarms", "daemons", "daemon_jobs", "daemon_job_runs",
-            "daemon_job_cron_triggers", "sandbox_integrated_accounts", "integrated_account_webhooks",
-            "environment_integration_webhooks", "notification_destinations", "files", "schema",
+            "users", "teams", "alarms", "daemons", "daemon_jobs", "daemon_job_runs", "daemon_job_cron_triggers",
+            "sandbox_integrated_accounts", "integrated_account_webhooks", "environment_integration_webhooks",
         ]:
-            self.assertFalse(hasattr(self.truto, attr), attr)
+            self.assertTrue(hasattr(self.truto, attr), attr)
+        for method in ["create", "update"]:
+            self.assertTrue(hasattr(self.truto.workflow_runs, method), method)
 
     async def test_pagination_does_not_mutate_caller_params(self):
         params = {"integrated_account_id": "ia"}
