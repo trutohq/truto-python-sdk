@@ -60,20 +60,12 @@ class IntegratedAccount:
             "integrated-account/form-token", data={"integrated_account_id": integrated_account_id}, params=query_params
         )
 
-    def install_sandbox(self, sandbox_integrated_account_id: str, **query_params):
-        """Create an integrated account from a sandbox integrated account."""
-        return self.api_client._post(
-            "integrated-account/install-sandbox-integrated-account",
-            data={"sandbox_integrated_account_id": sandbox_integrated_account_id},
-            params=query_params,
-        )
-
     def validate(self, integrated_account_id: str, **query_params):
         """Validate the integrated account's connection now."""
         return self.api_client._post(f"integrated-account/{integrated_account_id}/validate", params=query_params)
 
     def tools(self, integrated_account_id: str, **query_params):
-        """List the tools available on the integrated account."""
+        """Deprecated by Truto in favour of capabilities(). List the tools available on the integrated account."""
         return self.api_client._get(f"integrated-account/{integrated_account_id}/tools", params=query_params)
 
     def capabilities(self, integrated_account_id: str, **query_params):

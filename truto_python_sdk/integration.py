@@ -37,9 +37,9 @@ class Integration:
         return self.api_client._get(f"integration/{integration_id}/capabilities", params=query_params)
 
     def tools(self, integration_id: str, **query_params):
-        """List the tools an integration exposes, by ID or name."""
+        """Deprecated by Truto in favour of capabilities(). List the tools an integration exposes, by ID or name."""
         return self.api_client._get(f"integration/{integration_id}/tools", params=query_params)
 
     def unified_apis(self, integration_id: str, **query_params):
-        """List the unified APIs an integration supports, by ID or name."""
+        """Deprecated by Truto in favour of capabilities(). List the unified APIs an integration supports, by ID or name."""
         return self.api_client._get(f"integration/{integration_id}/unified-apis", params=query_params)

@@ -8,24 +8,17 @@ This document covers additional SDK endpoints available on the `TrutoApi` client
 - [MCP (Model Context Protocol)](#mcp-model-context-protocol)
 - [Workflows](#workflows)
 - [Workflow Runs](#workflow-runs)
-- [Alarms](#alarms)
 - [Static Gates](#static-gates)
-- [Sandbox Integrated Accounts](#sandbox-integrated-accounts)
-- [Integrated Account Webhooks](#integrated-account-webhooks)
-- [Environment Integration Webhooks](#environment-integration-webhooks)
 - [Unified API Custom Methods and Metadata](#unified-api-custom-methods-and-metadata)
 - [Integrated Account Operations](#integrated-account-operations)
 - [Integrations](#integrations)
+- [Webhook Test Events](#webhook-test-events)
 - [Tenants](#tenants)
-- [Session Tokens](#session-tokens)
 - [Environment Setup](#environment-setup)
 - [Unified Model Resource Methods](#unified-model-resource-methods)
 - [Sync Job Templates and Run States](#sync-job-templates-and-run-states)
-- [Notification and Observability Destinations](#notification-and-observability-destinations)
+- [Observability Destinations](#observability-destinations)
 - [Analytics](#analytics)
-- [Files](#files)
-- [Schema](#schema)
-- [Users and Teams](#users-and-teams)
 
 ---
 
@@ -186,21 +179,6 @@ async for run in runs:
 # Get a specific run
 run = await truto_api.workflow_runs.get("run-id")
 
-# Create a workflow run
-new_run = await truto_api.workflow_runs.create(
-    {
-        "workflow_id": "workflow-id",
-        "environment_id": "env-id",
-        "status": "pending",
-    }
-)
-
-# Update a run (e.g. mark as completed)
-await truto_api.workflow_runs.update(
-    "run-id",
-    {"status": "completed", "result": {"tickets_processed": 42}},
-)
-
 # Delete a run
 await truto_api.workflow_runs.delete("run-id")
 ```
@@ -211,70 +189,7 @@ await truto_api.workflow_runs.delete("run-id")
 |--------|-----------|-------------|
 | `list(**query_params)` | pagination + optional filters such as `workflow_id`, `environment_id`, `status` | List workflow runs (paginated cursor) |
 | `get(workflow_run_id, **query_params)` | `workflow_run_id`: run ID | Get a single run |
-| `create(workflow_run_data, **query_params)` | `workflow_run_data`: run payload | Create a new run |
-| `update(workflow_run_id, workflow_run_data, **query_params)` | `workflow_run_id`: run ID, `workflow_run_data`: partial update | Update a run |
 | `delete(workflow_run_id, **query_params)` | `workflow_run_id`: run ID | Delete a run |
-
----
-
-## Alarms
-
-Create and manage alarms that trigger on schedules, durations, or specific dates.
-
-Accessible via `truto_api.alarms`.
-
-```python
-# List all alarms
-alarms = truto_api.alarms.list()
-async for alarm in alarms:
-    print(alarm)
-
-# Get a specific alarm
-alarm = await truto_api.alarms.get("alarm-id")
-
-# Create a cron-based alarm
-cron_alarm = await truto_api.alarms.create(
-    {
-        "alarm_type": "cron",
-        "cron_expression": "0 9 * * *",
-        "entity_id": "some-entity-id",
-    }
-)
-
-# Create a duration-based alarm
-duration_alarm = await truto_api.alarms.create(
-    {
-        "alarm_type": "duration",
-        "duration": 3600,
-        "entity_id": "some-entity-id",
-    }
-)
-
-# Create a date-based alarm
-date_alarm = await truto_api.alarms.create(
-    {
-        "alarm_type": "date",
-        "date": "2026-06-01T00:00:00.000Z",
-        "entity_id": "some-entity-id",
-    }
-)
-
-# Update an alarm
-await truto_api.alarms.update("alarm-id", {"cron_expression": "0 10 * * *"})
-
-# Delete an alarm
-await truto_api.alarms.delete("alarm-id")
-```
-
-**Methods:**
-
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `list(**query_params)` | pagination + optional filters such as `alarm_type`, `entity_id` | List alarms (paginated cursor) |
-| `get(alarm_id, **query_params)` | `alarm_id`: alarm ID | Get a single alarm |
-| `create(alarm_data, **query_params)` | `alarm_data`: alarm payload | Create an alarm |
-| `update(alarm_id, alarm_data, **query_params)` | `alarm_id`: alarm ID, `alarm_data`: partial update | Update an alarm |
-| `delete(alarm_id, **query_params)` | `alarm_id`: alarm ID | Delete an alarm |
 
 ---
 
@@ -321,91 +236,6 @@ await truto_api.static_gates.delete("gate-id")
 
 ---
 
-## Sandbox Integrated Accounts
-
-Create sandboxed copies of integrated accounts for testing purposes.
-
-Accessible via `truto_api.sandbox_integrated_accounts`.
-
-```python
-# List sandbox accounts
-sandbox_accounts = truto_api.sandbox_integrated_accounts.list()
-async for account in sandbox_accounts:
-    print(account)
-
-# Get a specific sandbox account
-account = await truto_api.sandbox_integrated_accounts.get("sandbox-account-id")
-
-# Create a sandbox copy of an integrated account
-sandbox = await truto_api.sandbox_integrated_accounts.create(
-    {
-        "id": "766cc1ee-6637-4aa1-a73e-a0c89ccc867c",  # source integrated account ID
-    }
-)
-
-# Delete a sandbox account
-await truto_api.sandbox_integrated_accounts.delete("sandbox-account-id")
-```
-
-**Methods:**
-
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `list(**query_params)` | pagination + optional query filters | List sandbox accounts (paginated cursor) |
-| `get(sandbox_integrated_account_id, **query_params)` | `sandbox_integrated_account_id`: sandbox account ID | Get a single sandbox account |
-| `create(sandbox_integrated_account_data, **query_params)` | `sandbox_integrated_account_data`: `{ id }` where `id` is source integrated account ID | Create a sandbox account |
-| `delete(sandbox_integrated_account_id, **query_params)` | `sandbox_integrated_account_id`: sandbox account ID | Delete a sandbox account |
-
----
-
-## Integrated Account Webhooks
-
-Process incoming webhooks for a specific integrated account.
-
-Accessible via `truto_api.integrated_account_webhooks`.
-
-```python
-await truto_api.integrated_account_webhooks.process(
-    "766cc1ee-6637-4aa1-a73e-a0c89ccc867c",  # integrated account ID
-    {
-        "event": "ticket.created",
-        "data": {"id": "123", "title": "New ticket"},
-    },
-)
-```
-
-**Methods:**
-
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `process(integrated_account_id, payload, **query_params)` | `integrated_account_id`: account ID, `payload`: webhook payload | Forward a webhook payload for processing |
-
----
-
-## Environment Integration Webhooks
-
-Process incoming webhooks for a specific environment integration.
-
-Accessible via `truto_api.environment_integration_webhooks`.
-
-```python
-await truto_api.environment_integration_webhooks.process(
-    "env-integration-id",
-    {
-        "event": "sync.completed",
-        "data": {"records": 150},
-    },
-)
-```
-
-**Methods:**
-
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `process(environment_integration_id, payload, **query_params)` | `environment_integration_id`: environment integration ID, `payload`: webhook payload | Forward a webhook payload for processing |
-
----
-
 ## Unified API Custom Methods and Metadata
 
 `query_params` is optional on every `unified_api` and `proxy_api` method.
@@ -419,9 +249,8 @@ results = await truto_api.unified_api.custom_method(
 # Same for the proxy API (POST /proxy/tickets/merge)
 await truto_api.proxy_api.custom_method("tickets", "merge", {"ids": ["1", "2"]}, {"integrated_account_id": "766cc1ee-..."})
 
-# Schema and supported parameters of a unified method, across integrations or for one
-meta = await truto_api.unified_api.meta("crm", "contacts", "list")
-hubspot_meta = await truto_api.unified_api.meta("crm", "contacts", "list", "hubspot")
+# An integration's mapping metadata (schema, supported parameters) for a unified method
+hubspot_meta = await truto_api.unified_api.meta("crm", "contacts", "hubspot", "list")
 
 # Which resources and methods of a unified model an integration supports
 crm_on_hubspot = await truto_api.unified_api.model_meta("crm", "hubspot")
@@ -442,7 +271,6 @@ await ia.validate("ia-id")
 await ia.bulk_delete({"ids": ["ia-1", "ia-2"]})  # or {"tenant_id": "acme-1"}
 await ia.refresh_mapping_cache({"integration_id": "integration-id"})
 await ia.create_form_token("ia-id")
-await ia.install_sandbox("sandbox-integrated-account-id")
 
 tools = await ia.tools("ia-id")
 capabilities = await ia.capabilities("ia-id")
@@ -463,7 +291,6 @@ await ia.delete_mcp_server("ia-id", server["id"])
 | `bulk_delete(data)` | `POST /integrated-account/bulk-delete` |
 | `refresh_mapping_cache(data=None)` | `POST /integrated-account/refresh-mapping-cache` |
 | `create_form_token(id)` | `POST /integrated-account/form-token` |
-| `install_sandbox(sandbox_integrated_account_id)` | `POST /integrated-account/install-sandbox-integrated-account` |
 | `tools(id, **query_params)` | `GET /integrated-account/{id}/tools` |
 | `capabilities(id)` | `GET /integrated-account/{id}/capabilities` |
 | `list_mcp_servers(id)` / `create_mcp_server(id, data)` | `GET` / `POST /integrated-account/{id}/mcp` |
@@ -483,6 +310,15 @@ unified_apis = await truto_api.integrations.unified_apis("hubspot")
 
 ---
 
+## Webhook Test Events
+
+```python
+await truto_api.webhooks.test("webhook-id")
+await truto_api.webhooks.test("webhook-id", event_type="integrated_account:created", integrated_account_id="ia-id")
+```
+
+---
+
 ## Tenants
 
 Accessible via `truto_api.tenants`: `list`, `get`, `create`, `update`, `delete`, and `bulk_create`.
@@ -491,17 +327,6 @@ Accessible via `truto_api.tenants`: `list`, `get`, `create`, `update`, `delete`,
 await truto_api.tenants.create({"id": "acme-1", "name": "Acme"})
 tenants = await truto_api.tenants.list().to_array()
 await truto_api.tenants.bulk_create({"mode": "upsert", "tenants": [{"id": "acme-2", "name": "Acme 2"}]})
-```
-
----
-
-## Session Tokens
-
-Accessible via `truto_api.session_tokens`.
-
-```python
-token = await truto_api.session_tokens.create({"tenant_id": "acme-1", "expires_in": 3600})
-await truto_api.session_tokens.revoke({"tenant_id": "acme-1"})
 ```
 
 ---
@@ -516,8 +341,6 @@ await truto_api.environment_integrations.delete("environment-integration-id")
 
 await truto_api.environment_unified_models.create({"unified_model_id": "unified-model-id"})
 await truto_api.environment_unified_models.delete("environment-unified-model-id")
-
-await truto_api.environments.update("environment-id", {"name": "Production"})
 ```
 
 ---
@@ -548,16 +371,12 @@ states = await truto_api.sync_job_run_states.list(sync_job_id="sync-job-id").to_
 
 ---
 
-## Notification and Observability Destinations
+## Observability Destinations
 
-Both expose `list`, `get`, `create`, `update`, `delete` and `test`.
+Accessible via `truto_api.observability_destinations`: `list`, `get`, `create`, `update`, `delete` and `test`.
 
 ```python
-destination = await truto_api.notification_destinations.create(
-    {"type": "slack", "config": {"webhook_url": "https://hooks.slack.com/..."}}
-)
-await truto_api.notification_destinations.test(destination["id"])
-
+destinations = await truto_api.observability_destinations.list().to_array()
 await truto_api.observability_destinations.test("observability-destination-id")
 ```
 
@@ -577,40 +396,4 @@ series = await truto_api.analytics.timeseries(
 by_integration = await truto_api.analytics.breakdown(
     environment_id="environment-id", metric="requests", dimension="integration"
 )
-```
-
----
-
-## Files
-
-Upload a file and get back its public URL.
-
-```python
-with open("logo.png", "rb") as f:
-    result = await truto_api.files.upload(f, "logo.png", "image/png")
-print(result["url"])
-```
-
----
-
-## Schema
-
-```python
-openapi_yaml = await truto_api.schema.openapi()  # OpenAPI spec for all unified APIs
-```
-
----
-
-## Users and Teams
-
-```python
-me = await truto_api.users.me()
-await truto_api.users.update_me({"name": "New Name"})
-await truto_api.users.update("user-id", {"role": "admin"})  # team admins only
-
-await truto_api.teams.update("team-id", {"name": "New team name"})
-await truto_api.teams.invite("team-id", {"name": "Jane", "email": "jane@example.com", "role": "member"})
-
-# Send a specific test event to a webhook
-await truto_api.webhooks.test("webhook-id", event_type="integrated_account:created")
 ```

@@ -28,12 +28,11 @@ class UnifiedApi:
         """Call a custom method on a unified api resource."""
         return self.api_client._post(f"unified/{unified_model_name}/{unified_model_resource}/{method}", data=data, params=query_params)
 
-    def meta(self, unified_model_name: str, unified_model_resource: str, method: str, integration_name: str = None, query_params: dict = None):
-        """Get the schema and supported parameters of a unified api method, optionally for one integration."""
-        path = f"unified/{unified_model_name}/{unified_model_resource}"
-        if integration_name:
-            path = f"{path}/{integration_name}"
-        return self.api_client._get(f"{path}/meta/{method}", query_params)
+    def meta(self, unified_model_name: str, unified_model_resource: str, integration_name: str, method: str, query_params: dict = None):
+        """Get an integration's mapping metadata (schema, supported parameters) for a unified api method."""
+        return self.api_client._get(
+            f"unified/{unified_model_name}/{unified_model_resource}/{integration_name}/meta/{method}", query_params
+        )
 
     def model_meta(self, unified_model_name: str, integration_name: str, query_params: dict = None):
         """Get the resources and methods of a unified model that an integration supports."""

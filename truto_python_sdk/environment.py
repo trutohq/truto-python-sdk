@@ -11,7 +11,3 @@ class Environment:
     def get(self, environment_id: str):
         """Get a specific environment by ID."""
         return self.api_client._get(f"environment/{environment_id}")
-
-    def update(self, environment_id: str, environment_data: dict):
-        """Update an existing environment."""
-        return self.api_client._patch(f"environment/{environment_id}", data=environment_data)

@@ -10,12 +10,7 @@ from truto_python_sdk import TrutoApi
 async def echo(request: web.Request):
     """Reply with what the SDK sent so tests can assert on the exact request."""
     body = None
-    content_type = request.headers.get("Content-Type", "")
-    if content_type.startswith("multipart/"):
-        form = await request.post()
-        upload = form["file"]
-        body = {"filename": upload.filename, "content": upload.file.read().decode(), "type": upload.content_type}
-    elif request.can_read_body:
+    if request.can_read_body:
         raw = await request.read()
         body = json.loads(raw) if raw else None
     return web.json_response(
@@ -69,9 +64,8 @@ class TestEndpoints(unittest.IsolatedAsyncioTestCase):
 
     async def test_unified_meta(self):
         t = self.truto
-        await self.assertRequest(t.unified_api.meta("crm", "contacts", "list"), "GET", "/unified/crm/contacts/meta/list")
         await self.assertRequest(
-            t.unified_api.meta("crm", "contacts", "list", "hubspot"), "GET", "/unified/crm/contacts/hubspot/meta/list"
+            t.unified_api.meta("crm", "contacts", "hubspot", "list"), "GET", "/unified/crm/contacts/hubspot/meta/list"
         )
         await self.assertRequest(t.unified_api.model_meta("crm", "hubspot"), "GET", "/unified/meta/crm/hubspot")
 
@@ -87,10 +81,6 @@ class TestEndpoints(unittest.IsolatedAsyncioTestCase):
         await self.assertRequest(ia.refresh_mapping_cache(), "POST", "/integrated-account/refresh-mapping-cache", {})
         await self.assertRequest(
             ia.create_form_token("ia"), "POST", "/integrated-account/form-token", {"integrated_account_id": "ia"}
-        )
-        await self.assertRequest(
-            ia.install_sandbox("sb"), "POST", "/integrated-account/install-sandbox-integrated-account",
-            {"sandbox_integrated_account_id": "sb"},
         )
         await self.assertRequest(ia.validate("ia"), "POST", "/integrated-account/ia/validate")
         await self.assertRequest(ia.tools("ia", methods="list"), "GET", "/integrated-account/ia/tools", query={"methods": "list"})
@@ -108,17 +98,6 @@ class TestEndpoints(unittest.IsolatedAsyncioTestCase):
         await self.assertRequest(i.capabilities("hubspot"), "GET", "/integration/hubspot/capabilities")
         await self.assertRequest(i.tools("hubspot"), "GET", "/integration/hubspot/tools")
         await self.assertRequest(i.unified_apis("hubspot"), "GET", "/integration/hubspot/unified-apis")
-
-    async def test_account_resources(self):
-        t = self.truto
-        await self.assertRequest(t.users.me(), "GET", "/user/me")
-        await self.assertRequest(t.users.update_me({"name": "n"}), "PATCH", "/user/me", {"name": "n"})
-        await self.assertRequest(t.users.update("u", {"role": "admin"}), "PATCH", "/user/u", {"role": "admin"})
-        await self.assertRequest(t.teams.update("tm", {"name": "n"}), "PATCH", "/team/tm", {"name": "n"})
-        await self.assertRequest(
-            t.teams.invite("tm", {"email": "e@x.com"}), "POST", "/team/tm/invite", {"email": "e@x.com"}
-        )
-        await self.assertRequest(t.environments.update("e", {"name": "n"}), "PATCH", "/environment/e", {"name": "n"})
 
     async def test_environment_installs(self):
         t = self.truto
@@ -140,7 +119,6 @@ class TestEndpoints(unittest.IsolatedAsyncioTestCase):
             "environment_unified_model_resource_methods": "environment-unified-model-resource-method",
             "sync_job_run_states": "sync-job-run-state",
             "sync_job_templates": "sync-job-template",
-            "notification_destinations": "notification-destination",
             "observability_destinations": "observability-destination",
         }
         for attr, path in resources.items():
@@ -157,7 +135,6 @@ class TestEndpoints(unittest.IsolatedAsyncioTestCase):
         await self.assertRequest(
             t.tenants.bulk_create({"tenants": [{"id": "a"}]}), "POST", "/tenant/bulk", {"tenants": [{"id": "a"}]}
         )
-        await self.assertRequest(t.notification_destinations.test("nd"), "POST", "/notification-destination/test", {"id": "nd"})
         await self.assertRequest(t.observability_destinations.test("od"), "POST", "/observability-destination/od/test")
         await self.assertRequest(t.webhooks.test("w"), "POST", "/webhook/test", {"id": "w"})
         await self.assertRequest(
@@ -165,14 +142,6 @@ class TestEndpoints(unittest.IsolatedAsyncioTestCase):
             "POST", "/webhook/test",
             {"id": "w", "event_type": "integrated_account:created", "integrated_account_id": "ia"},
         )
-        await self.assertRequest(
-            t.documentations.bulk_apply({"creates": []}), "POST", "/documentation/bulk", {"creates": []}
-        )
-
-    async def test_session_tokens(self):
-        st = self.truto.session_tokens
-        await self.assertRequest(st.create({"tenant_id": "t"}), "POST", "/session-token", {"tenant_id": "t"})
-        await self.assertRequest(st.revoke({"tenant_id": "t"}), "DELETE", "/session-token", {"tenant_id": "t"})
 
     async def test_analytics(self):
         a = self.truto.analytics
@@ -188,14 +157,13 @@ class TestEndpoints(unittest.IsolatedAsyncioTestCase):
             "GET", "/analytics/breakdown", query={"environment_id": "e", "metric": "requests", "dimension": "integration"},
         )
 
-    async def test_schema(self):
-        await self.assertRequest(self.truto.schema.openapi(), "GET", "/schema/openapi.yml")
-
-    async def test_file_upload(self):
-        await self.assertRequest(
-            self.truto.files.upload(b"hello", "hello.txt", "text/plain"),
-            "POST", "/file", {"filename": "hello.txt", "content": "hello", "type": "text/plain"},
-        )
+    def test_non_public_resources_are_not_exposed(self):
+        for attr in [
+            "users", "teams", "session_tokens", "alarms", "daemons", "daemon_jobs", "daemon_job_runs",
+            "daemon_job_cron_triggers", "sandbox_integrated_accounts", "integrated_account_webhooks",
+            "environment_integration_webhooks", "notification_destinations", "files", "schema",
+        ]:
+            self.assertFalse(hasattr(self.truto, attr), attr)
 
     async def test_pagination_does_not_mutate_caller_params(self):
         params = {"integrated_account_id": "ia"}
