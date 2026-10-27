@@ -28,6 +28,13 @@ class UnifiedModel:
         """Install an unified_model by ID."""
         return self.api_client._post(f"environment-unified-model", data={"unified_model_id": unified_model_id})
 
-    def uninstall(self, unified_model_id: str):
-        """Uninstall an unified_model by ID."""
-        return self.api_client._delete(f"environment-unified-model/{unified_model_id}")
+    async def uninstall(self, unified_model_id: str):
+        """Uninstall a unified_model by ID from the environment."""
+        # The delete route takes the environment unified model ID, so look it up first.
+        environment_unified_models = await PaginationResult(
+            self.api_client, "environment-unified-model", {"unified_model_id": unified_model_id}
+        ).to_array()
+        return [
+            await self.api_client._delete(f"environment-unified-model/{environment_unified_model['id']}")
+            for environment_unified_model in environment_unified_models
+        ]

@@ -157,6 +157,15 @@ class TestEndpoints(unittest.IsolatedAsyncioTestCase):
             "GET", "/analytics/breakdown", query={"environment_id": "e", "metric": "requests", "dimension": "integration"},
         )
 
+    async def test_uninstall_resolves_environment_level_ids(self):
+        # The echo server's list pages return ids "1" and "2".
+        deleted = await self.truto.integrations.uninstall("integration-1")
+        self.assertEqual([(r["method"], r["path"]) for r in deleted],
+                         [("DELETE", "/environment-integration/1"), ("DELETE", "/environment-integration/2")])
+        deleted = await self.truto.unified_models.uninstall("unified-model-1")
+        self.assertEqual([(r["method"], r["path"]) for r in deleted],
+                         [("DELETE", "/environment-unified-model/1"), ("DELETE", "/environment-unified-model/2")])
+
     def test_non_public_resources_are_not_exposed(self):
         for attr in [
             "users", "teams", "session_tokens", "alarms", "daemons", "daemon_jobs", "daemon_job_runs",
