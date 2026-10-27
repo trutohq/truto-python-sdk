@@ -11,3 +11,15 @@ class User:
     def get(self, user_id: str):
         """Get a specific user by ID."""
         return self.api_client._get(f"user/{user_id}")
+
+    def me(self):
+        """Get the current user."""
+        return self.api_client._get("user/me")
+
+    def update_me(self, user_data: dict):
+        """Update the current user's profile."""
+        return self.api_client._patch("user/me", data=user_data)
+
+    def update(self, user_id: str, user_data: dict):
+        """Update a team member (team admins only)."""
+        return self.api_client._patch(f"user/{user_id}", data=user_data)

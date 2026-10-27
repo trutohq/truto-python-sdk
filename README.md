@@ -93,7 +93,7 @@ page = await truto_api.unified_api.list(
 
 ## Additional Endpoints
 
-The SDK also includes endpoints for Custom API, MCP, Workflows, Workflow Runs, Alarms, Static Gates, Sandbox Integrated Accounts, and Webhooks. See full reference in [ADVANCED_USAGE.md](./ADVANCED_USAGE.md).
+The SDK also covers Custom API, MCP, Workflows, Workflow Runs, Static Gates, Sandbox Integrated Accounts, Webhooks, Tenants, Session Tokens, integrated account operations (credentials, validation, tools, MCP servers), unified API metadata, unified model resource methods, sync job templates and run states, notification and observability destinations, Analytics, and file uploads. See full reference in [ADVANCED_USAGE.md](./ADVANCED_USAGE.md).
 
 ## Contributing
 

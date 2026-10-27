@@ -15,3 +15,11 @@ class EnvironmentIntegration:
     def update(self, environment_integration_id: str, environment_integration_data: dict):
         """Update an existing environment_integration."""
         return self.api_client._patch(f"environment-integration/{environment_integration_id}", data=environment_integration_data)
+
+    def create(self, environment_integration_data: dict):
+        """Install an integration in the environment (`integration_id`, optional `is_enabled`, `override`)."""
+        return self.api_client._post("environment-integration", data=environment_integration_data)
+
+    def delete(self, environment_integration_id: str):
+        """Uninstall an integration from the environment."""
+        return self.api_client._delete(f"environment-integration/{environment_integration_id}")

@@ -35,6 +35,17 @@ from .environment_unified_model import EnvironmentUnifiedModel
 from .webhook import Webhook
 from .workflow import Workflow
 from .workflow_run import WorkflowRun
+from .analytics import Analytics
+from .environment_unified_model_resource_method import EnvironmentUnifiedModelResourceMethod
+from .file import File
+from .notification_destination import NotificationDestination
+from .observability_destination import ObservabilityDestination
+from .schema import Schema
+from .session_token import SessionToken
+from .sync_job_run_state import SyncJobRunState
+from .sync_job_template import SyncJobTemplate
+from .tenant import Tenant
+from .unified_model_resource_method import UnifiedModelResourceMethod
 
 
 class TrutoApi:
@@ -80,6 +91,17 @@ class TrutoApi:
         self.custom_api = CustomApi(self)
         self.unified_api = UnifiedApi(self)
         self.proxy_api = ProxyApi(self)
+        self.tenants = Tenant(self)
+        self.session_tokens = SessionToken(self)
+        self.unified_model_resource_methods = UnifiedModelResourceMethod(self)
+        self.environment_unified_model_resource_methods = EnvironmentUnifiedModelResourceMethod(self)
+        self.sync_job_run_states = SyncJobRunState(self)
+        self.sync_job_templates = SyncJobTemplate(self)
+        self.notification_destinations = NotificationDestination(self)
+        self.observability_destinations = ObservabilityDestination(self)
+        self.analytics = Analytics(self)
+        self.files = File(self)
+        self.schema = Schema(self)
 
     async def _process_response(self, response):
         # Get the Content-Type header
@@ -127,11 +149,21 @@ class TrutoApi:
                 response.raise_for_status()
                 return await self._process_response(response)
 
-    async def _delete(self, endpoint, params=None):
+    async def _delete(self, endpoint, params=None, data=None):
         url = f"{self.base_url}/{endpoint}"
         query_string = dict_to_query_string(params) if params else ""
         async with aiohttp.ClientSession() as session:
-            async with session.delete(f"{url}?{query_string}", headers=self.headers) as response:
+            async with session.delete(f"{url}?{query_string}", headers=self.headers, json=data) as response:
+                response.raise_for_status()
+                return await self._process_response(response)
+
+    async def _post_form(self, endpoint, form: aiohttp.FormData, params=None):
+        url = f"{self.base_url}/{endpoint}"
+        query_string = dict_to_query_string(params) if params else ""
+        # Let aiohttp set the multipart Content-Type (with its boundary).
+        headers = {k: v for k, v in self.headers.items() if k != "Content-Type"}
+        async with aiohttp.ClientSession() as session:
+            async with session.post(f"{url}?{query_string}", headers=headers, data=form) as response:
                 response.raise_for_status()
                 return await self._process_response(response)
 

@@ -4,7 +4,8 @@ class PaginationResult:
     def __init__(self, api_client, endpoint, query_params):
         self.api_client = api_client
         self.endpoint = endpoint
-        self.query_params = query_params
+        # Copy so paging never writes next_cursor into the caller's dict.
+        self.query_params = dict(query_params or {})
         self.next_cursor = None
         self.items = []
         self.initial_fetch_done = False  # To check if we fetched the first page

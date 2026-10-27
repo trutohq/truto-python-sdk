@@ -26,3 +26,7 @@ class Documentation:
     def delete(self, documentation_id: str, **query_params):
         """Delete a documentation by ID."""
         return self.api_client._delete(f"documentation/{documentation_id}", query_params)
+
+    def bulk_apply(self, bulk_data: dict, **query_params):
+        """Create and update many documentation records at once (`creates`, `updates`, plus a scope such as `integration_id`)."""
+        return self.api_client._post("documentation/bulk", data=bulk_data, params=query_params)

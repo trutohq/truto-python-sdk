@@ -15,3 +15,11 @@ class EnvironmentUnifiedModel:
     def update(self, environment_unified_model_id: str, environment_unified_model_data: dict):
         """Update an existing environment_unified_model."""
         return self.api_client._patch(f"environment-unified-model/{environment_unified_model_id}", data=environment_unified_model_data)
+
+    def create(self, environment_unified_model_data: dict):
+        """Install a unified model in the environment (`unified_model_id`)."""
+        return self.api_client._post("environment-unified-model", data=environment_unified_model_data)
+
+    def delete(self, environment_unified_model_id: str):
+        """Uninstall a unified model from the environment."""
+        return self.api_client._delete(f"environment-unified-model/{environment_unified_model_id}")
