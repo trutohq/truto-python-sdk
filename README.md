@@ -6,7 +6,7 @@
 
 ## Requires
 
-Python 3.8+
+Python 3.12+
 
 ## Installation
 
@@ -91,9 +91,9 @@ page = await truto_api.unified_api.list(
 ).next_page()
 ```
 
-## Additional Endpoints
+## Full reference
 
-The SDK also includes endpoints for Custom API, MCP, Workflows, Workflow Runs, Alarms, Static Gates, Sandbox Integrated Accounts, and Webhooks. See full reference in [ADVANCED_USAGE.md](./ADVANCED_USAGE.md).
+Every resource and method, with examples, is documented at **[truto.one/docs/sdks/python](https://truto.one/docs/sdks/python)**: the Unified, Proxy and Custom APIs, MCP, integrated accounts, tenants, integrations, unified models and mappings, sync jobs, webhooks, workflows, datastores, analytics, and more.
 
 ## Contributing
 

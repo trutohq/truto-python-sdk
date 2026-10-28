@@ -24,6 +24,11 @@ class Webhook:
         """Delete a webhook by ID."""
         return self.api_client._delete(f"webhook/{webhook_id}")
 
-    def test(self, webhook_id: str):
-        """Test a webhook by ID."""
-        return self.api_client._post(f"webhook/test", data={"id": webhook_id})
+    def test(self, webhook_id: str, event_type: str = None, integrated_account_id: str = None):
+        """Send a test event to a webhook, optionally of a given `event_type` and for an integrated account."""
+        data = {"id": webhook_id}
+        if event_type is not None:
+            data["event_type"] = event_type
+        if integrated_account_id is not None:
+            data["integrated_account_id"] = integrated_account_id
+        return self.api_client._post("webhook/test", data=data)

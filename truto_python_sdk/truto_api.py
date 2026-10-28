@@ -2,39 +2,46 @@ import aiohttp
 
 from .dict_to_query_string import dict_to_query_string
 from .alarm import Alarm
-from .api_token import ApiToken
-from .batch_request import BatchRequest
-from .category import Category
-from .custom_api import CustomApi
 from .daemon import Daemon
 from .daemon_job import DaemonJob
 from .daemon_job_cron_trigger import DaemonJobCronTrigger
 from .daemon_job_run import DaemonJobRun
+from .environment_integration_webhook import EnvironmentIntegrationWebhook
+from .integrated_account_webhook import IntegratedAccountWebhook
+from .sandbox_integrated_account import SandboxIntegratedAccount
+from .team import Team
+from .user import User
+from .api_token import ApiToken
+from .batch_request import BatchRequest
+from .category import Category
+from .custom_api import CustomApi
 from .datastore import Datastore
 from .documentation import Documentation
 from .environment import Environment
 from .environment_integration import EnvironmentIntegration
-from .environment_integration_webhook import EnvironmentIntegrationWebhook
 from .integrated_account import IntegratedAccount
-from .integrated_account_webhook import IntegratedAccountWebhook
 from .integration import Integration
 from .link_token import LinkToken
 from .log import Log
 from .mcp import Mcp
 from .proxy_api import ProxyApi
-from .sandbox_integrated_account import SandboxIntegratedAccount
 from .static_gate import StaticGate
 from .sync_job import SyncJob
 from .sync_job_cron_trigger import SyncJobCronTrigger
 from .sync_job_run import SyncJobRun
-from .team import Team
 from .unified_api import UnifiedApi
-from .user import User
 from .unified_model import UnifiedModel
 from .environment_unified_model import EnvironmentUnifiedModel
 from .webhook import Webhook
 from .workflow import Workflow
 from .workflow_run import WorkflowRun
+from .analytics import Analytics
+from .environment_unified_model_resource_method import EnvironmentUnifiedModelResourceMethod
+from .observability_destination import ObservabilityDestination
+from .sync_job_run_state import SyncJobRunState
+from .sync_job_template import SyncJobTemplate
+from .tenant import Tenant
+from .unified_model_resource_method import UnifiedModelResourceMethod
 
 
 class TrutoApi:
@@ -46,29 +53,19 @@ class TrutoApi:
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
-        self.users = User(self)
-        self.teams = Team(self)
         self.api_tokens = ApiToken(self)
         self.environments = Environment(self)
         self.categories = Category(self)
         self.link_tokens = LinkToken(self)
         self.integrated_accounts = IntegratedAccount(self)
-        self.sandbox_integrated_accounts = SandboxIntegratedAccount(self)
         self.integrations = Integration(self)
         self.environment_integrations = EnvironmentIntegration(self)
-        self.environment_integration_webhooks = EnvironmentIntegrationWebhook(self)
-        self.integrated_account_webhooks = IntegratedAccountWebhook(self)
         self.unified_models = UnifiedModel(self)
         self.environment_unified_models = EnvironmentUnifiedModel(self)
         self.sync_jobs = SyncJob(self)
         self.sync_job_runs = SyncJobRun(self)
         self.sync_job_cron_triggers = SyncJobCronTrigger(self)
-        self.daemons = Daemon(self)
-        self.daemon_jobs = DaemonJob(self)
-        self.daemon_job_runs = DaemonJobRun(self)
-        self.daemon_job_cron_triggers = DaemonJobCronTrigger(self)
         self.datastores = Datastore(self)
-        self.alarms = Alarm(self)
         self.workflows = Workflow(self)
         self.workflow_runs = WorkflowRun(self)
         self.documentations = Documentation(self)
@@ -80,6 +77,23 @@ class TrutoApi:
         self.custom_api = CustomApi(self)
         self.unified_api = UnifiedApi(self)
         self.proxy_api = ProxyApi(self)
+        self.tenants = Tenant(self)
+        self.unified_model_resource_methods = UnifiedModelResourceMethod(self)
+        self.environment_unified_model_resource_methods = EnvironmentUnifiedModelResourceMethod(self)
+        self.sync_job_run_states = SyncJobRunState(self)
+        self.sync_job_templates = SyncJobTemplate(self)
+        self.observability_destinations = ObservabilityDestination(self)
+        self.analytics = Analytics(self)
+        self.users = User(self)
+        self.teams = Team(self)
+        self.sandbox_integrated_accounts = SandboxIntegratedAccount(self)
+        self.environment_integration_webhooks = EnvironmentIntegrationWebhook(self)
+        self.integrated_account_webhooks = IntegratedAccountWebhook(self)
+        self.daemons = Daemon(self)
+        self.daemon_jobs = DaemonJob(self)
+        self.daemon_job_runs = DaemonJobRun(self)
+        self.daemon_job_cron_triggers = DaemonJobCronTrigger(self)
+        self.alarms = Alarm(self)
 
     async def _process_response(self, response):
         # Get the Content-Type header

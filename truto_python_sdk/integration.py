@@ -28,6 +28,25 @@ class Integration:
         """Install an integration by ID."""
         return self.api_client._post(f"environment-integration", data={"integration_id": integration_id, "is_enabled": is_enabled})
 
-    def uninstall(self, integration_id: str):
-        """Uninstall an integration by ID."""
-        return self.api_client._delete(f"environment-integration/{integration_id}")
+    async def uninstall(self, integration_id: str):
+        """Uninstall an integration by ID from the environment."""
+        # The delete route takes the environment integration ID, so look it up first.
+        environment_integrations = await PaginationResult(
+            self.api_client, "environment-integration", {"integration_id": integration_id}
+        ).to_array()
+        return [
+            await self.api_client._delete(f"environment-integration/{environment_integration['id']}")
+            for environment_integration in environment_integrations
+        ]
+
+    def capabilities(self, integration_id: str, **query_params):
+        """Get the capabilities (resources and methods) of an integration by ID or name."""
+        return self.api_client._get(f"integration/{integration_id}/capabilities", params=query_params)
+
+    def tools(self, integration_id: str, **query_params):
+        """Deprecated by Truto in favour of capabilities(). List the tools an integration exposes, by ID or name."""
+        return self.api_client._get(f"integration/{integration_id}/tools", params=query_params)
+
+    def unified_apis(self, integration_id: str, **query_params):
+        """Deprecated by Truto in favour of capabilities(). List the unified APIs an integration supports, by ID or name."""
+        return self.api_client._get(f"integration/{integration_id}/unified-apis", params=query_params)

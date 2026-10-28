@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "truto-python-sdk"
-version = "0.1.7"
+version = "0.2.0"
 description = "Python3 SDK for the Truto API"
 authors = ["Roopendra Talekar <roopendratalekar@gmail.com>"]
 readme = "README.md"
