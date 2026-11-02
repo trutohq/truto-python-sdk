@@ -14,3 +14,4 @@ __license__ = 'MIT'
 __copyright__ = 'Copyright 2023 Yin Yang Inc.'
 
 from .truto_api import TrutoApi
+from .errors import TrutoApiError

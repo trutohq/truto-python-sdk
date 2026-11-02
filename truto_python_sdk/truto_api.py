@@ -1,6 +1,7 @@
 import aiohttp
 
 from .dict_to_query_string import dict_to_query_string
+from .errors import TrutoApiError, raise_for_status
 from .alarm import Alarm
 from .daemon import Daemon
 from .daemon_job import DaemonJob
@@ -114,7 +115,7 @@ class TrutoApi:
         query_string = dict_to_query_string(params) if params else ""
         async with aiohttp.ClientSession() as session:
             async with session.get(f"{url}?{query_string}", headers=self.headers) as response:
-                response.raise_for_status()
+                await raise_for_status(response)
                 return await self._process_response(response)
 
     async def _post(self, endpoint, data=None, params=None):
@@ -122,7 +123,7 @@ class TrutoApi:
         query_string = dict_to_query_string(params) if params else ""
         async with aiohttp.ClientSession() as session:
             async with session.post(f"{url}?{query_string}", headers=self.headers, json=data) as response:
-                response.raise_for_status()
+                await raise_for_status(response)
                 return await self._process_response(response)
 
     async def _patch(self, endpoint, data=None, params=None):
@@ -130,7 +131,7 @@ class TrutoApi:
         query_string = dict_to_query_string(params) if params else ""
         async with aiohttp.ClientSession() as session:
             async with session.patch(f"{url}?{query_string}", headers=self.headers, json=data) as response:
-                response.raise_for_status()
+                await raise_for_status(response)
                 return await self._process_response(response)
 
     async def _put(self, endpoint, data=None, params=None):
@@ -138,7 +139,7 @@ class TrutoApi:
         query_string = dict_to_query_string(params) if params else ""
         async with aiohttp.ClientSession() as session:
             async with session.put(f"{url}?{query_string}", headers=self.headers, json=data) as response:
-                response.raise_for_status()
+                await raise_for_status(response)
                 return await self._process_response(response)
 
     async def _delete(self, endpoint, params=None):
@@ -146,7 +147,7 @@ class TrutoApi:
         query_string = dict_to_query_string(params) if params else ""
         async with aiohttp.ClientSession() as session:
             async with session.delete(f"{url}?{query_string}", headers=self.headers) as response:
-                response.raise_for_status()
+                await raise_for_status(response)
                 return await self._process_response(response)
 
     async def ping(self):
