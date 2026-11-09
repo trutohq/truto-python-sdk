@@ -1,3 +1,4 @@
+import copy
 import unittest
 
 import aiohttp
@@ -5,6 +6,7 @@ from aiohttp import web
 from aiohttp.test_utils import TestServer
 
 from truto_python_sdk import TrutoApi, TrutoApiError
+from truto_python_sdk.errors import MAX_ERROR_BODY_BYTES
 
 
 async def handler(request: web.Request):
@@ -18,6 +20,10 @@ async def handler(request: web.Request):
         )
     if request.path == "/text-error":
         return web.Response(text="upstream exploded", status=502)
+    if request.path == "/object-error":
+        return web.json_response({"error": {"code": "x"}, "message": "Bad input"}, status=400)
+    if request.path == "/huge-error":
+        return web.Response(body=b"a" * (MAX_ERROR_BODY_BYTES * 2) + b"\xff", status=500)
     if request.path == "/empty-error":
         return web.Response(status=500)
     return web.json_response({"ok": True})
@@ -75,6 +81,29 @@ class TestErrors(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(ctx.exception.status, 500)
         self.assertIsNone(ctx.exception.data)
         self.assertIsNone(ctx.exception.truto_error_insight)
+
+    async def test_copy_and_pickle_keep_fields(self):
+        with self.assertRaises(TrutoApiError) as ctx:
+            await self.truto._get("json-error")
+        err = ctx.exception
+        # deepcopy/pickle fail on aiohttp's own request_info headers, base class included.
+        for clone in (copy.copy(err),):
+            self.assertIsInstance(clone, TrutoApiError)
+            self.assertEqual(clone.status, 404)
+            self.assertEqual(clone.message, "Not Found")
+            self.assertEqual(clone.error, "Integrated account not found")
+            self.assertEqual(clone.body, err.body)
+
+    async def test_non_string_error_falls_back_to_message(self):
+        with self.assertRaises(TrutoApiError) as ctx:
+            await self.truto._get("object-error")
+        self.assertEqual(ctx.exception.error, "Bad input")
+        self.assertIn("Bad input", str(ctx.exception))
+
+    async def test_error_body_read_is_capped(self):
+        with self.assertRaises(TrutoApiError) as ctx:
+            await self.truto._get("huge-error")
+        self.assertEqual(len(ctx.exception.body), MAX_ERROR_BODY_BYTES)
 
     async def test_success_is_unchanged(self):
         self.assertEqual(await self.truto._get("ok"), {"ok": True})

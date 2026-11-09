@@ -2,6 +2,9 @@ import json
 
 import aiohttp
 
+# Error bodies are kept on the exception, so cap how much of one we read.
+MAX_ERROR_BODY_BYTES = 64 * 1024
+
 
 class TrutoApiError(aiohttp.ClientResponseError):
     """Raised when the Truto API responds with a 4xx or 5xx status.
@@ -15,7 +18,19 @@ class TrutoApiError(aiohttp.ClientResponseError):
     - ``data``: the body parsed as JSON, or ``None`` if it isn't JSON
     """
 
-    def __init__(self, request_info, history, *, status, message, headers, body=None, data=None):
+    def __init__(
+        self,
+        request_info,
+        history,
+        *,
+        status=None,
+        message="",
+        headers=None,
+        body=None,
+        data=None,
+    ):
+        # Defaults match aiohttp.ClientResponseError: copy/pickle rebuild the
+        # error as ``cls(request_info, history)`` and then restore __dict__.
         super().__init__(request_info, history, status=status, message=message, headers=headers)
         self.body = body
         self.data = data
@@ -24,7 +39,10 @@ class TrutoApiError(aiohttp.ClientResponseError):
     def error(self):
         """Truto's error message (the ``error`` field of a JSON error body), if any."""
         if isinstance(self.data, dict):
-            return self.data.get("error") or self.data.get("message")
+            for key in ("error", "message"):
+                value = self.data.get(key)
+                if isinstance(value, str) and value:
+                    return value
         return None
 
     @property
@@ -50,7 +68,8 @@ async def raise_for_status(response: aiohttp.ClientResponse):
     body = None
     data = None
     try:
-        body = await response.text()
+        raw = await response.content.read(MAX_ERROR_BODY_BYTES)
+        body = raw.decode(response.charset or "utf-8", errors="replace")
     except Exception:
         body = None
     if body:

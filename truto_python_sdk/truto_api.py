@@ -1,7 +1,7 @@
 import aiohttp
 
 from .dict_to_query_string import dict_to_query_string
-from .errors import TrutoApiError, raise_for_status
+from .errors import raise_for_status
 from .alarm import Alarm
 from .daemon import Daemon
 from .daemon_job import DaemonJob
