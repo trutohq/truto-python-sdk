@@ -82,7 +82,7 @@ class TestErrors(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(ctx.exception.data)
         self.assertIsNone(ctx.exception.truto_error_insight)
 
-    async def test_copy_and_pickle_keep_fields(self):
+    async def test_copy_keeps_fields(self):
         with self.assertRaises(TrutoApiError) as ctx:
             await self.truto._get("json-error")
         err = ctx.exception
