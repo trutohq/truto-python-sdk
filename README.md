@@ -91,6 +91,23 @@ page = await truto_api.unified_api.list(
 ).next_page()
 ```
 
+## Errors
+
+A 4xx or 5xx response raises `TrutoApiError`. It subclasses `aiohttp.ClientResponseError`, so `.status`, `.message` and `.headers` work as before, and it also carries the response body Truto sent:
+
+```python
+from truto_python_sdk import TrutoApiError
+
+try:
+    await truto_api.integrated_accounts.get("missing-id")
+except TrutoApiError as e:
+    print(e.status)               # 404
+    print(e.error)                # Truto's error message, if the body is JSON
+    print(e.truto_error_insight)  # extra detail Truto attaches to some errors, or None
+    print(e.data)                 # the full parsed JSON body, or None
+    print(e.body)                 # the raw body as text
+```
+
 ## Full reference
 
 Every resource and method, with examples, is documented at **[truto.one/docs/sdks/python](https://truto.one/docs/sdks/python)**: the Unified, Proxy and Custom APIs, MCP, integrated accounts, tenants, integrations, unified models and mappings, sync jobs, webhooks, workflows, datastores, analytics, and more.
