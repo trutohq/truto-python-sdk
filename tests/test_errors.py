@@ -1,4 +1,6 @@
+import asyncio
 import copy
+import json
 import unittest
 
 import aiohttp
@@ -24,6 +26,31 @@ async def handler(request: web.Request):
         return web.json_response({"error": {"code": "x"}, "message": "Bad input"}, status=400)
     if request.path == "/huge-error":
         return web.Response(body=b"a" * (MAX_ERROR_BODY_BYTES * 2) + b"\xff", status=500)
+    if request.path == "/chunked-error":
+        # A normal-sized JSON error sent in several writes, as a proxy or a
+        # slow upstream would: a single read() sees only the first chunk.
+        payload = json.dumps({"error": "Chunked failure", "pad": "x" * 30000}).encode()
+        resp = web.StreamResponse(status=400, headers={"Content-Type": "application/json"})
+        await resp.prepare(request)
+        for i in range(0, len(payload), 4000):
+            await resp.write(payload[i : i + 4000])
+            await asyncio.sleep(0.01)
+        await resp.write_eof()
+        return resp
+    if request.path == "/huge-chunked-error":
+        resp = web.StreamResponse(status=500)
+        await resp.prepare(request)
+        for _ in range(40):
+            await resp.write(b"a" * 4000)
+            await asyncio.sleep(0.005)
+        await resp.write_eof()
+        return resp
+    if request.path == "/unknown-charset-error":
+        return web.Response(
+            body=b'{"error": "Bad charset"}',
+            status=400,
+            headers={"Content-Type": "application/json; charset=x-no-such-codec"},
+        )
     if request.path == "/empty-error":
         return web.Response(status=500)
     return web.json_response({"ok": True})
@@ -104,6 +131,24 @@ class TestErrors(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(TrutoApiError) as ctx:
             await self.truto._get("huge-error")
         self.assertEqual(len(ctx.exception.body), MAX_ERROR_BODY_BYTES)
+
+    async def test_chunked_error_body_is_read_whole(self):
+        with self.assertRaises(TrutoApiError) as ctx:
+            await self.truto._get("chunked-error")
+        err = ctx.exception
+        self.assertGreater(len(err.body), 30000)
+        self.assertEqual(err.error, "Chunked failure")
+
+    async def test_huge_chunked_body_is_capped_at_exactly_the_limit(self):
+        with self.assertRaises(TrutoApiError) as ctx:
+            await self.truto._get("huge-chunked-error")
+        self.assertEqual(len(ctx.exception.body), MAX_ERROR_BODY_BYTES)
+
+    async def test_unknown_charset_falls_back_to_utf8(self):
+        with self.assertRaises(TrutoApiError) as ctx:
+            await self.truto._get("unknown-charset-error")
+        self.assertEqual(ctx.exception.body, '{"error": "Bad charset"}')
+        self.assertEqual(ctx.exception.error, "Bad charset")
 
     async def test_success_is_unchanged(self):
         self.assertEqual(await self.truto._get("ok"), {"ok": True})

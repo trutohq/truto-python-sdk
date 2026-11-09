@@ -1,3 +1,5 @@
+import asyncio
+import codecs
 import json
 
 import aiohttp
@@ -60,6 +62,16 @@ class TrutoApiError(aiohttp.ClientResponseError):
         return f"{base}, body={detail!r}" if detail else base
 
 
+def _codec(charset):
+    """The response's charset if Python knows it, else utf-8."""
+    if charset:
+        try:
+            return codecs.lookup(charset).name
+        except LookupError:
+            pass
+    return "utf-8"
+
+
 async def raise_for_status(response: aiohttp.ClientResponse):
     """Like ``response.raise_for_status()`` but reads the body first so the
     raised ``TrutoApiError`` carries Truto's error message."""
@@ -68,8 +80,14 @@ async def raise_for_status(response: aiohttp.ClientResponse):
     body = None
     data = None
     try:
-        raw = await response.content.read(MAX_ERROR_BODY_BYTES)
-        body = raw.decode(response.charset or "utf-8", errors="replace")
+        # read(n) returns as soon as anything is buffered, so a body sent in
+        # several chunks would be cut short. readexactly waits for n bytes and
+        # hands back what arrived when the body ends first.
+        try:
+            raw = await response.content.readexactly(MAX_ERROR_BODY_BYTES)
+        except asyncio.IncompleteReadError as e:
+            raw = e.partial
+        body = raw.decode(_codec(response.charset), errors="replace")
     except Exception:
         body = None
     if body:
