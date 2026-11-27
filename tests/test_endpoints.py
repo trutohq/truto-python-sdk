@@ -4,7 +4,7 @@ import unittest
 from aiohttp import web
 from aiohttp.test_utils import TestServer
 
-from truto_python_sdk import TrutoApi
+from truto_python_sdk import TrutoApi, __version__
 
 
 async def echo(request: web.Request):
@@ -20,6 +20,7 @@ async def echo(request: web.Request):
             "query": dict(request.query),
             "body": body,
             "auth": request.headers.get("Authorization"),
+            "user_agent": request.headers.get("User-Agent"),
             # Two pages: the first hands out a cursor, the second doesn't.
             "result": [{"id": "2" if "next_cursor" in request.query else "1"}],
             "next_cursor": None if "next_cursor" in request.query else "page-2",
@@ -45,6 +46,7 @@ class TestEndpoints(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response["body"], body)
         self.assertEqual(response["query"], query or {})
         self.assertEqual(response["auth"], "Bearer test-token")
+        self.assertEqual(response["user_agent"], f"truto-python-sdk/{__version__}")
 
     async def test_custom_methods(self):
         t = self.truto

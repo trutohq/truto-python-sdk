@@ -1,5 +1,6 @@
 import aiohttp
 
+from . import __version__
 from .dict_to_query_string import dict_to_query_string
 from .errors import raise_for_status
 from .alarm import Alarm
@@ -52,7 +53,8 @@ class TrutoApi:
         self.headers = {
             "Authorization": f"Bearer {self.token}",
             "Content-Type": "application/json",
-            "Accept": "application/json"
+            "Accept": "application/json",
+            "User-Agent": f"truto-python-sdk/{__version__}",
         }
         self.api_tokens = ApiToken(self)
         self.environments = Environment(self)
